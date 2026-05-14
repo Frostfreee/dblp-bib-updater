@@ -119,7 +119,7 @@ Any word-level difference counts as a mismatch → `[TITLE_CHANGED?]`.
 | Option | Default | Description |
 |---|---|---|
 | `input` | `references.bib` | Input BibTeX file |
-| `-o` / `--output` | `<input>.updated.bib` | Output BibTeX file |
+| `-o` / `--output` | `updated.bib` | Output BibTeX file |
 | `--log` | `update_log.txt` | Log file path |
 | `--review` | `review_needed.txt` | Review file path |
 | `--resume` | — | Skip already-successful entries, retry failures |
