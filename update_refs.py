@@ -22,19 +22,18 @@ import urllib.request
 import urllib.parse
 import json
 import re
+import argparse
 import time
 import sys
 from pathlib import Path
-
-INPUT_BIB = "references.bib"
-OUTPUT_BIB = "updated.bib"
-REVIEW_FILE = "review_needed.txt"
-LOG_FILE = "update_log.txt"
 
 DBLP_SEARCH_URL = "https://dblp.org/search/publ/api"
 USER_AGENT = "reference-updater/1.0 (academic research tool)"
 RATE_LIMIT = 2.0       # seconds between DBLP requests
 CHECKPOINT_EVERY = 10  # write output files every N entries
+
+# Resolved from CLI args in main(); used as module-level names by helper functions.
+INPUT_BIB = OUTPUT_BIB = REVIEW_FILE = LOG_FILE = None
 
 
 # ---------------------------------------------------------------------------
@@ -220,8 +219,30 @@ def load_resume_state(retry_not_found: bool = False) -> tuple[dict, set, list, d
 # ---------------------------------------------------------------------------
 
 def main():
-    resume = '--resume' in sys.argv
-    retry_not_found = '--retry-not-found' in sys.argv
+    global INPUT_BIB, OUTPUT_BIB, REVIEW_FILE, LOG_FILE
+
+    ap = argparse.ArgumentParser(description="Refresh a BibTeX file against DBLP.")
+    ap.add_argument("input",  nargs="?", default="references.bib",
+                    help="Input BibTeX file (default: references.bib)")
+    ap.add_argument("-o", "--output", default=None,
+                    help="Output BibTeX file (default: <input-stem>.updated.bib)")
+    ap.add_argument("--log", default="update_log.txt",
+                    help="Log file (default: update_log.txt)")
+    ap.add_argument("--review", default="review_needed.txt",
+                    help="Review file for ambiguous entries (default: review_needed.txt)")
+    ap.add_argument("--resume", action="store_true",
+                    help="Skip already-successful entries, retry only failures")
+    ap.add_argument("--retry-not-found", action="store_true",
+                    help="With --resume, also retry NOT_FOUND entries")
+    args = ap.parse_args()
+
+    INPUT_BIB   = args.input
+    OUTPUT_BIB  = args.output or str(Path(args.input).with_suffix("")) + ".updated.bib"
+    LOG_FILE    = args.log
+    REVIEW_FILE = args.review
+    resume          = args.resume
+    retry_not_found = args.retry_not_found
+
     bib_path = Path(INPUT_BIB)
     if not bib_path.exists():
         sys.exit(f"Error: {INPUT_BIB} not found")

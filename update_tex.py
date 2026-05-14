@@ -8,13 +8,10 @@ then rewrites all \cite{} commands in every .tex file found under TEX_DIR.
 Changes are logged to tex_update_log.txt.
 """
 
+import argparse
 import re
 import sys
 from pathlib import Path
-
-LOG_FILE   = "update_log.txt"
-TEX_DIR    = "SoK__Prompt_Security_S_P_27_Due_0611"
-TEX_LOG    = "tex_update_log.txt"
 
 # Matches all \cite variants with optional bracket arg:
 # \cite, \citep, \citet, \citealt, \citealp, \citeauthor, \citeyear, \nocite, etc.
@@ -105,13 +102,24 @@ def process_file(tex_path: Path, key_map: dict[str, str]) -> list[str]:
 # ---------------------------------------------------------------------------
 
 def main():
-    log_path = Path(LOG_FILE)
-    tex_dir  = Path(TEX_DIR)
+    ap = argparse.ArgumentParser(
+        description="Rewrite \\cite{} keys in .tex files using the mapping from update_log.txt.")
+    ap.add_argument("tex_dir",
+                    help="Directory to search recursively for .tex files")
+    ap.add_argument("--log", default="update_log.txt",
+                    help="update_log.txt produced by update_refs.py (default: update_log.txt)")
+    ap.add_argument("--tex-log", default="tex_update_log.txt",
+                    help="Output log file (default: tex_update_log.txt)")
+    args = ap.parse_args()
+
+    log_path = Path(args.log)
+    tex_dir  = Path(args.tex_dir)
+    tex_log  = args.tex_log
 
     if not log_path.exists():
-        sys.exit(f"Error: {LOG_FILE} not found — run update_refs.py first.")
+        sys.exit(f"Error: {args.log} not found — run update_refs.py first.")
     if not tex_dir.exists():
-        sys.exit(f"Error: directory {TEX_DIR} not found.")
+        sys.exit(f"Error: directory {args.tex_dir} not found.")
 
     key_map = build_key_map(log_path)
     if not key_map:
@@ -141,9 +149,9 @@ def main():
             print(f"[NO CHANGE] {tex_path}")
             all_log_lines.append(f"[NO CHANGE] {tex_path}")
 
-    Path(TEX_LOG).write_text('\n'.join(all_log_lines), encoding='utf-8')
+    Path(tex_log).write_text('\n'.join(all_log_lines), encoding='utf-8')
     print(f"\n{total_changes} substitution(s) across {len(tex_files)} file(s).")
-    print(f"Wrote {TEX_LOG}")
+    print(f"Wrote {tex_log}")
 
 
 if __name__ == '__main__':

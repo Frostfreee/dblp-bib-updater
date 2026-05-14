@@ -36,14 +36,20 @@ update_tex.py   ──→  rewrites .tex files in-place
 
 ```bash
 # Full run — processes all entries from scratch
-python3 update_refs.py
+python3 update_refs.py references.bib
+
+# Custom output path
+python3 update_refs.py references.bib -o final.bib
 
 # Resume — skips already-successful entries, retries only failures
-python3 update_refs.py --resume
+python3 update_refs.py references.bib --resume
 
 # Resume and also retry NOT_FOUND entries
 # (useful when re-running after adding new detection logic)
-python3 update_refs.py --resume --retry-not-found
+python3 update_refs.py references.bib --resume --retry-not-found
+
+# Full option reference
+python3 update_refs.py --help
 ```
 
 ### Output files
@@ -108,14 +114,23 @@ Any word-level difference counts as a mismatch → `[TITLE_CHANGED?]`.
 | `REFRESHED`, `PUBLISHED`, `ARXIV_REFRESHED`, `NOT_FOUND`, `NO_TITLE`, `TITLE_CHANGED?`, `REVIEW` | Carried over from `updated.bib`; original log line preserved |
 | `FETCH_FAIL`, `ERROR` | Re-processed; log line updated in-place on success |
 
-### Configuration
+### Options
+
+| Option | Default | Description |
+|---|---|---|
+| `input` | `references.bib` | Input BibTeX file |
+| `-o` / `--output` | `<input>.updated.bib` | Output BibTeX file |
+| `--log` | `update_log.txt` | Log file path |
+| `--review` | `review_needed.txt` | Review file path |
+| `--resume` | — | Skip already-successful entries, retry failures |
+| `--retry-not-found` | — | With `--resume`, also retry `NOT_FOUND` entries |
+
+### Tunable constants
 
 At the top of `update_refs.py`:
 
 | Variable | Default | Description |
 |---|---|---|
-| `INPUT_BIB` | `references.bib` | Input BibTeX file |
-| `OUTPUT_BIB` | `updated.bib` | Output BibTeX file |
 | `RATE_LIMIT` | `2.0` | Seconds between DBLP requests. Increase if you see frequent timeouts. |
 | `CHECKPOINT_EVERY` | `10` | Write output files every N entries. |
 
@@ -128,7 +143,14 @@ Reads the key mapping produced by `update_refs.py` (`[PUBLISHED]` and `[ARXIV_RE
 ### Usage
 
 ```bash
-python3 update_tex.py
+# Update all .tex files under a directory
+python3 update_tex.py path/to/paper/
+
+# Custom log file location
+python3 update_tex.py path/to/paper/ --log update_log.txt
+
+# Full option reference
+python3 update_tex.py --help
 ```
 
 ### What it handles
@@ -138,15 +160,13 @@ python3 update_tex.py
 - Optional bracket arguments: `\cite[see][]{key}`
 - Recursive search across all `.tex` files under the configured directory
 
-### Configuration
+### Options
 
-At the top of `update_tex.py`:
-
-| Variable | Default | Description |
+| Option | Default | Description |
 |---|---|---|
-| `LOG_FILE` | `update_log.txt` | Key mapping source |
-| `TEX_DIR` | _(set to your paper directory)_ | Root directory to search for `.tex` files |
-| `TEX_LOG` | `tex_update_log.txt` | Per-file, per-line change log |
+| `tex_dir` | _(required)_ | Directory to search recursively for `.tex` files |
+| `--log` | `update_log.txt` | `update_log.txt` path |
+| `--tex-log` | `tex_update_log.txt` | Output log file path |
 
 ### Output
 
