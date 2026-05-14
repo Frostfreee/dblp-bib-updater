@@ -23,9 +23,11 @@ update_refs.py  ──→  updated.bib
                       update_log.txt
                       review_needed.txt
       │
-      ▼
-update_tex.py   ──→  rewrites .tex files in-place
-                      tex_update_log.txt
+      ├──→ update_tex.py    ──→  rewrites .tex files in-place
+      │                           tex_update_log.txt
+      │
+      └──→ abbreviate_bib.py ──→  updated.abbrev.bib
+                                   (short venue names for space-limited venues)
 ```
 
 ---
@@ -133,6 +135,33 @@ At the top of `update_refs.py`:
 |---|---|---|
 | `RATE_LIMIT` | `2.0` | Seconds between DBLP requests. Increase if you see frequent timeouts. |
 | `CHECKPOINT_EVERY` | `10` | Write output files every N entries. |
+
+---
+
+## abbreviate_bib.py
+
+Replaces the `booktitle` field of `@inproceedings` entries with a short venue abbreviation and year (e.g. `Findings of the Association for Computational Linguistics, ACL 2024, ...` → `ACL 2024`). Useful when bibliography space is limited.
+
+### Usage
+
+```bash
+# Default output: updated.abbrev.bib
+python3 abbreviate_bib.py updated.bib
+
+# Custom output path
+python3 abbreviate_bib.py updated.bib -o final.bib
+```
+
+### How it works
+
+The venue abbreviation is extracted from the DBLP key (e.g. `conf/acl/` → `ACL`), then combined with the `year` field. Entries whose venue is not in the built-in mapping table are left unchanged and reported at the end so you can extend `VENUE_MAP` at the top of the script.
+
+### Options
+
+| Option | Default | Description |
+|---|---|---|
+| `input` | `updated.bib` | Input BibTeX file |
+| `-o` / `--output` | `<input>.abbrev.bib` | Output BibTeX file |
 
 ---
 
