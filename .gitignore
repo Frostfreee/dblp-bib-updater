@@ -1,0 +1,18 @@
+# Generated outputs
+updated.bib
+update_log.txt
+review_needed.txt
+tex_update_log.txt
+
+# Input bib (project-specific)
+references.bib
+
+# Paper directory
+SoK__Prompt_Security_S_P_27_Due_0611/
+
+# Python
+__pycache__/
+*.pyc
+
+# macOS
+.DS_Store
