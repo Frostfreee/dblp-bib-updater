@@ -23,6 +23,7 @@ import urllib.parse
 import json
 import re
 import argparse
+import html
 import time
 import sys
 from pathlib import Path
@@ -42,7 +43,8 @@ INPUT_BIB = OUTPUT_BIB = REVIEW_FILE = LOG_FILE = None
 
 def normalize_title(title: str) -> str:
     """Lowercase, strip LaTeX braces/trailing dot, remove all punctuation."""
-    t = re.sub(r'[{}]', '', title)
+    t = html.unescape(title)      # &apos; → ', &amp; → &, etc.
+    t = re.sub(r'[{}]', '', t)
     t = re.sub(r'\s+', ' ', t)   # collapse newlines/tabs BEFORE anything else
     t = t.strip().rstrip('.')
     t = t.lower()
