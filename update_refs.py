@@ -42,13 +42,15 @@ INPUT_BIB = OUTPUT_BIB = REVIEW_FILE = LOG_FILE = None
 # ---------------------------------------------------------------------------
 
 def normalize_title(title: str) -> str:
-    """Lowercase, strip LaTeX braces/trailing dot, remove all punctuation."""
-    t = html.unescape(title)      # &apos; → ', &amp; → &, etc.
-    t = re.sub(r'[{}]', '', t)
-    t = re.sub(r'\s+', ' ', t)   # collapse newlines/tabs BEFORE anything else
+    """Lowercase, strip LaTeX/HTML markup, remove all punctuation."""
+    t = html.unescape(title)           # &apos; → ', &middot; → ·, etc.
+    t = re.sub(r'[{}]', '', t)         # strip LaTeX braces
+    t = re.sub(r'\\\(|\\\)', '', t)    # remove \( \) math delimiters
+    t = re.sub(r'\\[a-z]+', '', t)      # remove LaTeX commands: \cdot, \emph, etc.
+    t = re.sub(r'\s+', ' ', t)         # collapse whitespace (incl. \n)
     t = t.strip().rstrip('.')
     t = t.lower()
-    t = re.sub(r'[^a-z0-9 ]', '', t)
+    t = re.sub(r'[^a-z0-9 ]', '', t)  # remove punctuation and non-ASCII chars
     return re.sub(r'\s+', ' ', t).strip()
 
 
@@ -97,9 +99,13 @@ def find_published(title: str):
       'title_changed' , [list of dicts] , [...]  → non-arXiv results exist but title differs
       'error'         , []              , []     → network/parse failure
     """
-    # Clean the query before sending: strip LaTeX braces and collapse whitespace.
-    # The raw title (with {LLM}, \n, etc.) confuses DBLP's search engine.
+    # Clean the query before sending to DBLP:
+    # - strip LaTeX braces and commands
+    # - replace non-ASCII characters (e.g. · U+00B7) with spaces so DBLP
+    #   can still find papers whose titles contain special symbols
     query = re.sub(r'[{}]', '', title)
+    query = re.sub(r'\\[a-zA-Z()]+', ' ', query)
+    query = query.encode('ascii', errors='replace').decode('ascii')
     query = re.sub(r'\s+', ' ', query).strip()
 
     hits = search_dblp(query)
