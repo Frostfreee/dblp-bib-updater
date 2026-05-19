@@ -105,7 +105,7 @@ def find_published(title: str):
     #   can still find papers whose titles contain special symbols
     query = re.sub(r'[{}]', '', title)
     query = re.sub(r'\\[a-zA-Z()]+', ' ', query)
-    query = query.encode('ascii', errors='replace').decode('ascii')
+    query = re.sub(r'[^\x00-\x7F]', ' ', query)  # replace non-ASCII (e.g. ·) with space
     query = re.sub(r'\s+', ' ', query).strip()
 
     hits = search_dblp(query)
